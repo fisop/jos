@@ -121,7 +121,7 @@ strfind(const char *s, char c)
 void *
 memset(void *v, int c, size_t n)
 {
-	char *p;
+	char *p = v;
 
 	if (n == 0)
 		return v;
@@ -129,11 +129,13 @@ memset(void *v, int c, size_t n)
 		c &= 0xFF;
 		c = (c<<24)|(c<<16)|(c<<8)|c;
 		asm volatile("cld; rep stosl\n"
-			:: "D" (v), "a" (c), "c" (n/4)
+			: "=D" (p), "=c" (n)
+			: "D" (p), "a" (c), "c" (n/4)
 			: "cc", "memory");
 	} else
 		asm volatile("cld; rep stosb\n"
-			:: "D" (v), "a" (c), "c" (n)
+			: "=D" (p), "=c" (n)
+			: "0" (p), "a" (c), "1" (n)
 			: "cc", "memory");
 	return v;
 }
