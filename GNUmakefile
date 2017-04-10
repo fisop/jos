@@ -65,6 +65,7 @@ endif
 
 # try to generate a unique GDB port
 GDBPORT	:= $(shell expr `id -u` % 5000 + 25000)
+GDBSERV	:= 127.0.0.1:$(GDBPORT)
 
 CC	:= $(GCCPREFIX)gcc -pipe
 AS	:= $(GCCPREFIX)as
@@ -138,35 +139,30 @@ include boot/Makefrag
 include kern/Makefrag
 
 
-QEMUOPTS = -drive file=$(OBJDIR)/kern/kernel.img,index=0,media=disk,format=raw -serial mon:stdio -gdb tcp::$(GDBPORT)
+QEMUOPTS = -drive file=$(OBJDIR)/kern/kernel.img,index=0,media=disk,format=raw -serial mon:stdio -gdb tcp:$(GDBSERV)
 QEMUOPTS += $(shell if $(QEMU) -nographic -help | grep -q '^-D '; then echo '-D qemu.log'; fi)
 IMAGES = $(OBJDIR)/kern/kernel.img
 QEMUOPTS += $(QEMUEXTRA)
 
-.gdbinit: .gdbinit.tmpl
-	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
-
 gdb:
-	gdb -n -x .gdbinit
+	gdb -q -s obj/kern/kernel -ex 'target remote $(GDBSERV)' -n -x .gdbinit
 
-pre-qemu: .gdbinit
-
-qemu: $(IMAGES) pre-qemu
+qemu: $(IMAGES)
 	$(QEMU) $(QEMUOPTS)
 
-qemu-nox: $(IMAGES) pre-qemu
+qemu-nox: $(IMAGES)
 	@echo "***"
 	@echo "*** Use Ctrl-a x to exit qemu"
 	@echo "***"
 	$(QEMU) -nographic $(QEMUOPTS)
 
-qemu-gdb: $(IMAGES) pre-qemu
+qemu-gdb: $(IMAGES)
 	@echo "***"
 	@echo "*** Now run 'make gdb'." 1>&2
 	@echo "***"
 	$(QEMU) $(QEMUOPTS) -S
 
-qemu-nox-gdb: $(IMAGES) pre-qemu
+qemu-nox-gdb: $(IMAGES)
 	@echo "***"
 	@echo "*** Now run 'make gdb'." 1>&2
 	@echo "***"
@@ -180,7 +176,7 @@ print-gdbport:
 
 # For deleting the build
 clean:
-	rm -rf $(OBJDIR) .gdbinit jos.in qemu.log
+	rm -rf $(OBJDIR) jos.in qemu.log
 
 realclean: clean
 	rm -rf lab$(LAB).tar.gz \
