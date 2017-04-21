@@ -1,0 +1,2 @@
+kern/kdebug.c
+kern/pmap.c
