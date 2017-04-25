@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from gradelib import *
+from subprocess import Popen
 
 r = Runner(save("jos.out"),
            stop_breakpoint("readline"))
@@ -23,6 +24,14 @@ def test_check_kern_pgdir():
 
 @test(1, "Page management 2", parent=test_jos)
 def test_check_page_installed_pgdir():
+    r.match(r"check_page_installed_pgdir\(\) succeeded!")
+
+@test(1, "Large pages", parent=test_jos)
+def test_check_pse():
+    if Popen(["grep", "-qE", "^ *# *ifn?def +TP1_PSE", "kern/pmap.c"]).wait():
+        raise NotImplementedError
+    r.run_qemu(make_args=["LABDEFS=-DTP1_PSE"])
+    r.match(r"check_kern_pgdir_pse\(\) succeeded!")
     r.match(r"check_page_installed_pgdir\(\) succeeded!")
 
 run_tests()
