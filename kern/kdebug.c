@@ -140,7 +140,8 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 		// to __STAB_BEGIN__, __STAB_END__, __STABSTR_BEGIN__, and
 		// __STABSTR_END__) in a structure located at virtual address
 		// USTABDATA.
-		const struct UserStabData *usd = (const struct UserStabData *) USTABDATA;
+		const struct UserStabData *usd =
+		        (const struct UserStabData *) USTABDATA;
 
 		// Make sure this memory is valid.
 		// Return -1 if it is not.  Hint: Call user_mem_check.

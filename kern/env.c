@@ -12,19 +12,19 @@
 #include <kern/trap.h>
 #include <kern/monitor.h>
 
-struct Env *envs = NULL;		// All environments
-struct Env *curenv = NULL;		// The current env
-static struct Env *env_free_list;	// Free environment list
-					// (linked by Env->env_link)
+struct Env *envs = NULL;           // All environments
+struct Env *curenv = NULL;         // The current env
+static struct Env *env_free_list;  // Free environment list
+                                   // (linked by Env->env_link)
 
-#define ENVGENSHIFT	12		// >= LOGNENV
+#define ENVGENSHIFT 12  // >= LOGNENV
 
 // Global descriptor table.
 //
 // Set up global descriptor table (GDT) with separate segments for
 // kernel mode and user mode.  Segments serve many purposes on the x86.
 // We don't use any of their memory-mapping capabilities, but we need
-// them to switch privilege levels. 
+// them to switch privilege levels.
 //
 // The kernel and user segments are identical except for the DPL.
 // To load the SS register, the CPL must equal the DPL.  Thus,
@@ -34,8 +34,7 @@ static struct Env *env_free_list;	// Free environment list
 // definition of gdt specifies the Descriptor Privilege Level (DPL)
 // of that descriptor: 0 for kernel and 3 for user.
 //
-struct Segdesc gdt[] =
-{
+struct Segdesc gdt[] = {
 	// 0x0 - unused (always faults -- for trapping NULL far pointers)
 	SEG_NULL,
 
@@ -55,9 +54,7 @@ struct Segdesc gdt[] =
 	[GD_TSS0 >> 3] = SEG_NULL
 };
 
-struct Pseudodesc gdt_pd = {
-	sizeof(gdt) - 1, (unsigned long) gdt
-};
+struct Pseudodesc gdt_pd = { sizeof(gdt) - 1, (unsigned long) gdt };
 
 //
 // Converts an envid to an env pointer.
@@ -128,15 +125,15 @@ env_init_percpu(void)
 	lgdt(&gdt_pd);
 	// The kernel never uses GS or FS, so we leave those set to
 	// the user data segment.
-	asm volatile("movw %%ax,%%gs" : : "a" (GD_UD|3));
-	asm volatile("movw %%ax,%%fs" : : "a" (GD_UD|3));
+	asm volatile("movw %%ax,%%gs" : : "a"(GD_UD | 3));
+	asm volatile("movw %%ax,%%fs" : : "a"(GD_UD | 3));
 	// The kernel does use ES, DS, and SS.  We'll change between
 	// the kernel and user data segments as needed.
-	asm volatile("movw %%ax,%%es" : : "a" (GD_KD));
-	asm volatile("movw %%ax,%%ds" : : "a" (GD_KD));
-	asm volatile("movw %%ax,%%ss" : : "a" (GD_KD));
+	asm volatile("movw %%ax,%%es" : : "a"(GD_KD));
+	asm volatile("movw %%ax,%%ds" : : "a"(GD_KD));
+	asm volatile("movw %%ax,%%ss" : : "a"(GD_KD));
 	// Load the kernel text segment into CS.
-	asm volatile("ljmp %0,$1f\n 1:\n" : : "i" (GD_KT));
+	asm volatile("ljmp %0,$1f\n 1:\n" : : "i"(GD_KT));
 	// For good measure, clear the local descriptor table (LDT),
 	// since we don't use it.
 	lldt(0);
@@ -211,7 +208,7 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 
 	// Generate an env_id for this environment.
 	generation = (e->env_id + (1 << ENVGENSHIFT)) & ~(NENV - 1);
-	if (generation <= 0)	// Don't create a negative env_id.
+	if (generation <= 0)  // Don't create a negative env_id.
 		generation = 1 << ENVGENSHIFT;
 	e->env_id = generation | (e - envs);
 
@@ -365,14 +362,13 @@ env_free(struct Env *e)
 	// Flush all mapped pages in the user portion of the address space
 	static_assert(UTOP % PTSIZE == 0);
 	for (pdeno = 0; pdeno < PDX(UTOP); pdeno++) {
-
 		// only look at mapped page tables
 		if (!(e->env_pgdir[pdeno] & PTE_P))
 			continue;
 
 		// find the pa and va of the page table
 		pa = PTE_ADDR(e->env_pgdir[pdeno]);
-		pt = (pte_t*) KADDR(pa);
+		pt = (pte_t *) KADDR(pa);
 
 		// unmap all PTEs in this page table
 		for (pteno = 0; pteno <= PTX(~0); pteno++) {
@@ -419,15 +415,16 @@ env_destroy(struct Env *e)
 void
 env_pop_tf(struct Trapframe *tf)
 {
-	asm volatile(
-		"\tmovl %0,%%esp\n"
-		"\tpopal\n"
-		"\tpopl %%es\n"
-		"\tpopl %%ds\n"
-		"\taddl $0x8,%%esp\n" /* skip tf_trapno and tf_errcode */
-		"\tiret\n"
-		: : "g" (tf) : "memory");
-	panic("iret failed");  /* mostly to placate the compiler */
+	asm volatile("\tmovl %0,%%esp\n"
+	             "\tpopal\n"
+	             "\tpopl %%es\n"
+	             "\tpopl %%ds\n"
+	             "\taddl $0x8,%%esp\n" /* skip tf_trapno and tf_errcode */
+	             "\tiret\n"
+	             :
+	             : "g"(tf)
+	             : "memory");
+	panic("iret failed"); /* mostly to placate the compiler */
 }
 
 //
@@ -460,4 +457,3 @@ env_run(struct Env *e)
 
 	panic("env_run not yet implemented");
 }
-
