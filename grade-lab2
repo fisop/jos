@@ -28,7 +28,7 @@ def test_check_page_installed_pgdir():
 
 @test(1, "Large pages", parent=test_jos)
 def test_check_pse():
-    if Popen(["grep", "-qE", "^ *# *ifn?def +TP1_PSE", "kern/pmap.c"]).wait():
+    if Popen(["grep", "-qE", "^[ \t]*#[ \t]*ifn?def[ \t]+TP1_PSE", "kern/pmap.c"]).wait():
         raise NotImplementedError
     r.run_qemu(make_args=["LABDEFS=-DTP1_PSE"])
     r.match(r"check_kern_pgdir_pse\(\) succeeded!")
