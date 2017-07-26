@@ -1,0 +1,15 @@
+fs/bc.c
+fs/fs.c
+fs/serv.c
+kern/env.c
+kern/kdebug.c
+kern/pmap.c
+kern/sched.c
+kern/syscall.c
+kern/trap.c
+lib/file.c
+lib/fork.c
+lib/ipc.c
+lib/libmain.c
+lib/spawn.c
+user/sh.c
