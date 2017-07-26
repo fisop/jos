@@ -1,6 +1,6 @@
 #include <inc/lib.h>
 
-#define BUFSIZ 1024		/* Find the buffer overrun bug! */
+#define BUFSIZ 1024 /* Find the buffer overrun bug! */
 int debug = 0;
 
 
@@ -19,7 +19,7 @@ int gettoken(char *s, char **token);
 // so it's OK to manipulate file descriptor state.
 #define MAXARGS 16
 void
-runcmd(char* s)
+runcmd(char *s)
 {
 	char *argv[MAXARGS], *t, argv0buf[BUFSIZ];
 	int argc, c, i, r, p[2], fd, pipe_child;
@@ -31,8 +31,7 @@ again:
 	argc = 0;
 	while (1) {
 		switch ((c = gettoken(0, &t))) {
-
-		case 'w':	// Add an argument
+		case 'w':  // Add an argument
 			if (argc == MAXARGS) {
 				cprintf("too many arguments\n");
 				exit();
@@ -40,10 +39,11 @@ again:
 			argv[argc++] = t;
 			break;
 
-		case '<':	// Input redirection
+		case '<':  // Input redirection
 			// Grab the filename from the argument list
 			if (gettoken(0, &t) != 'w') {
-				cprintf("syntax error: < not followed by word\n");
+				cprintf("syntax error: < not followed by "
+				        "word\n");
 				exit();
 			}
 			// Open 't' for reading as file descriptor 0
@@ -58,13 +58,14 @@ again:
 			panic("< redirection not implemented");
 			break;
 
-		case '>':	// Output redirection
+		case '>':  // Output redirection
 			// Grab the filename from the argument list
 			if (gettoken(0, &t) != 'w') {
-				cprintf("syntax error: > not followed by word\n");
+				cprintf("syntax error: > not followed by "
+				        "word\n");
 				exit();
 			}
-			if ((fd = open(t, O_WRONLY|O_CREAT|O_TRUNC)) < 0) {
+			if ((fd = open(t, O_WRONLY | O_CREAT | O_TRUNC)) < 0) {
 				cprintf("open %s for write: %e", t, fd);
 				exit();
 			}
@@ -74,7 +75,7 @@ again:
 			}
 			break;
 
-		case '|':	// Pipe
+		case '|':  // Pipe
 			if ((r = pipe(p)) < 0) {
 				cprintf("pipe: %e", r);
 				exit();
@@ -104,20 +105,19 @@ again:
 			panic("| not implemented");
 			break;
 
-		case 0:		// String is complete
+		case 0:  // String is complete
 			// Run the current command!
 			goto runit;
 
 		default:
 			panic("bad return %d from gettoken", c);
 			break;
-
 		}
 	}
 
 runit:
 	// Return immediately if command line was empty.
-	if(argc == 0) {
+	if (argc == 0) {
 		if (debug)
 			cprintf("EMPTY COMMAND\n");
 		return;
@@ -143,7 +143,7 @@ runit:
 	}
 
 	// Spawn the command!
-	if ((r = spawn(argv[0], (const char**) argv)) < 0)
+	if ((r = spawn(argv[0], (const char **) argv)) < 0)
 		cprintf("spawn %s: %e\n", argv[0], r);
 
 	// In the parent, close all file descriptors and wait for the
@@ -161,7 +161,9 @@ runit:
 	// wait for the right-hand part to finish.
 	if (pipe_child) {
 		if (debug)
-			cprintf("[%08x] WAIT pipe_child %08x\n", thisenv->env_id, pipe_child);
+			cprintf("[%08x] WAIT pipe_child %08x\n",
+			        thisenv->env_id,
+			        pipe_child);
 		wait(pipe_child);
 		if (debug)
 			cprintf("[%08x] wait finished\n", thisenv->env_id);
@@ -236,7 +238,7 @@ int
 gettoken(char *s, char **p1)
 {
 	static int c, nc;
-	static char* np1, *np2;
+	static char *np1, *np2;
 
 	if (s) {
 		nc = _gettoken(s, &np1, &np2);
@@ -298,7 +300,7 @@ umain(int argc, char **argv)
 		if (buf == NULL) {
 			if (debug)
 				cprintf("EXITING\n");
-			exit();	// end of file
+			exit();  // end of file
 		}
 		if (debug)
 			cprintf("LINE: %s\n", buf);
@@ -319,4 +321,3 @@ umain(int argc, char **argv)
 			wait(r);
 	}
 }
-

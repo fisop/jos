@@ -5,7 +5,7 @@
 
 // PTE_COW marks copy-on-write page table entries.
 // It is one of the bits explicitly allocated to user processes (PTE_AVAIL).
-#define PTE_COW		0x800
+#define PTE_COW 0x800
 
 //
 // Custom page fault handler - if faulting page is copy-on-write,

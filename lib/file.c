@@ -22,7 +22,10 @@ fsipc(unsigned type, void *dstva)
 	static_assert(sizeof(fsipcbuf) == PGSIZE);
 
 	if (debug)
-		cprintf("[%08x] fsipc %d %08x\n", thisenv->env_id, type, *(uint32_t *)&fsipcbuf);
+		cprintf("[%08x] fsipc %d %08x\n",
+		        thisenv->env_id,
+		        type,
+		        *(uint32_t *) &fsipcbuf);
 
 	ipc_send(fsenv, type, &fsipcbuf, PTE_P | PTE_W | PTE_U);
 	return ipc_recv(NULL, dstva, NULL);
@@ -34,16 +37,13 @@ static ssize_t devfile_write(struct Fd *fd, const void *buf, size_t n);
 static int devfile_stat(struct Fd *fd, struct Stat *stat);
 static int devfile_trunc(struct Fd *fd, off_t newsize);
 
-struct Dev devfile =
-{
-	.dev_id =	'f',
-	.dev_name =	"file",
-	.dev_read =	devfile_read,
-	.dev_close =	devfile_flush,
-	.dev_stat =	devfile_stat,
-	.dev_write =	devfile_write,
-	.dev_trunc =	devfile_trunc
-};
+struct Dev devfile = { .dev_id = 'f',
+	               .dev_name = "file",
+	               .dev_read = devfile_read,
+	               .dev_close = devfile_flush,
+	               .dev_stat = devfile_stat,
+	               .dev_write = devfile_write,
+	               .dev_trunc = devfile_trunc };
 
 // Open a file (or directory).
 //
@@ -177,4 +177,3 @@ sync(void)
 
 	return fsipc(FSREQ_SYNC, NULL);
 }
-

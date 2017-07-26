@@ -26,14 +26,13 @@ static struct Trapframe *last_tf;
  * shifted function addresses can't be represented in relocation records.)
  */
 struct Gatedesc idt[256] = { { 0 } };
-struct Pseudodesc idt_pd = {
-	sizeof(idt) - 1, (uint32_t) idt
-};
+struct Pseudodesc idt_pd = { sizeof(idt) - 1, (uint32_t) idt };
 
 
-static const char *trapname(int trapno)
+static const char *
+trapname(int trapno)
 {
-	static const char * const excnames[] = {
+	static const char *const excnames[] = {
 		"Divide error",
 		"Debug",
 		"Non-Maskable Interrupt",
@@ -73,7 +72,7 @@ trap_init(void)
 
 	// LAB 3: Your code here.
 
-	// Per-CPU setup 
+	// Per-CPU setup
 	trap_init_percpu();
 }
 
@@ -111,8 +110,8 @@ trap_init_percpu(void)
 	ts.ts_iomb = sizeof(struct Taskstate);
 
 	// Initialize the TSS slot of the gdt.
-	gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t) (&ts),
-					sizeof(struct Taskstate) - 1, 0);
+	gdt[GD_TSS0 >> 3] =
+	        SEG16(STS_T32A, (uint32_t)(&ts), sizeof(struct Taskstate) - 1, 0);
 	gdt[GD_TSS0 >> 3].sd_s = 0;
 
 	// Load the TSS selector (like other segment selectors, the
@@ -142,9 +141,9 @@ print_trapframe(struct Trapframe *tf)
 	// PR=a protection violation caused the fault (NP=page not present).
 	if (tf->tf_trapno == T_PGFLT)
 		cprintf(" [%s, %s, %s]\n",
-			tf->tf_err & 4 ? "user" : "kernel",
-			tf->tf_err & 2 ? "write" : "read",
-			tf->tf_err & 1 ? "protection" : "not-present");
+		        tf->tf_err & 4 ? "user" : "kernel",
+		        tf->tf_err & 2 ? "write" : "read",
+		        tf->tf_err & 1 ? "protection" : "not-present");
 	else
 		cprintf("\n");
 	cprintf("  eip  0x%08x\n", tf->tf_eip);
@@ -309,8 +308,9 @@ page_fault_handler(struct Trapframe *tf)
 
 	// Destroy the environment that caused the fault.
 	cprintf("[%08x] user fault va %08x ip %08x\n",
-		curenv->env_id, fault_va, tf->tf_eip);
+	        curenv->env_id,
+	        fault_va,
+	        tf->tf_eip);
 	print_trapframe(tf);
 	env_destroy(curenv);
 }
-

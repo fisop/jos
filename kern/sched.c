@@ -69,15 +69,14 @@ sched_halt(void)
 	unlock_kernel();
 
 	// Reset stack pointer, enable interrupts and then halt.
-	asm volatile (
-		"movl $0, %%ebp\n"
-		"movl %0, %%esp\n"
-		"pushl $0\n"
-		"pushl $0\n"
-		"sti\n"
-		"1:\n"
-		"hlt\n"
-		"jmp 1b\n"
-	: : "a" (thiscpu->cpu_ts.ts_esp0));
+	asm volatile("movl $0, %%ebp\n"
+	             "movl %0, %%esp\n"
+	             "pushl $0\n"
+	             "pushl $0\n"
+	             "sti\n"
+	             "1:\n"
+	             "hlt\n"
+	             "jmp 1b\n"
+	             :
+	             : "a"(thiscpu->cpu_ts.ts_esp0));
 }
-
