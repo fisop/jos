@@ -40,6 +40,7 @@
 _start = RELOC(entry)
 
 .globl entry
+.func entry
 entry:
 	movw	$0x1234,0x472			# warm boot
 
