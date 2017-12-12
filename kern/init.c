@@ -21,12 +21,12 @@ static void boot_aps(void);
 void
 i386_init(void)
 {
-	extern char edata[], end[];
+	extern char __bss_start[], end[];
 
 	// Before doing anything else, complete the ELF loading process.
 	// Clear the uninitialized global data (BSS) section of our program.
 	// This ensures that all static/global variables start out zero.
-	memset(edata, 0, end - edata);
+	memset(__bss_start, 0, end - __bss_start);
 
 	// Initialize the console.
 	// Can't call cprintf until after we do this!
@@ -144,9 +144,9 @@ _panic(const char *file, int line, const char *fmt,...)
 	asm volatile("cli; cld");
 
 	va_start(ap, fmt);
-	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
+	cprintf(">>>\n>>> kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
 	vcprintf(fmt, ap);
-	cprintf("\n");
+	cprintf("\n>>>\n");
 	va_end(ap);
 
 dead:

@@ -50,6 +50,7 @@ SECTIONS
 	PROVIDE(edata = .);
 
 	.bss : {
+		__bss_start = .;  /* Should fix `edata` instead. */
 		*(.bss)
 	}
 

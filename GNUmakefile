@@ -65,6 +65,7 @@ endif
 
 # try to generate a unique GDB port
 GDBPORT	:= $(shell expr `id -u` % 5000 + 25000)
+GDBSERV	:= 127.0.0.1:$(GDBPORT)
 
 CC	:= $(GCCPREFIX)gcc -pipe
 AS	:= $(GCCPREFIX)as
@@ -84,9 +85,8 @@ PERL	:= perl
 # -fno-builtin is required to avoid refs to undefined functions in the kernel.
 # Only optimize to -O1 to discourage inlining, which complicates backtraces.
 CFLAGS := $(CFLAGS) $(DEFS) $(LABDEFS) -O1 -fno-builtin -I$(TOP) -MD
-CFLAGS += -fno-omit-frame-pointer
-CFLAGS += -std=gnu99
-CFLAGS += -static
+CFLAGS += -fno-omit-frame-pointer -fno-pic -fno-inline
+CFLAGS += -std=c99 -fasm -ffreestanding -fno-strict-aliasing
 CFLAGS += -Wall -Wno-format -Wno-unused -Werror -gstabs -m32
 # -fno-tree-ch prevented gcc from sometimes reordering read_ebp() before
 # mon_backtrace()'s function prologue on gcc version: (Debian 4.7.2-5) 4.7.2
@@ -143,36 +143,30 @@ include user/Makefrag
 
 CPUS ?= 1
 
-QEMUOPTS = -drive file=$(OBJDIR)/kern/kernel.img,index=0,media=disk,format=raw -serial mon:stdio -gdb tcp::$(GDBPORT)
+QEMUOPTS = -drive file=$(OBJDIR)/kern/kernel.img,index=0,media=disk,format=raw -serial mon:stdio -gdb tcp:$(GDBSERV)
 QEMUOPTS += $(shell if $(QEMU) -nographic -help | grep -q '^-D '; then echo '-D qemu.log'; fi)
 IMAGES = $(OBJDIR)/kern/kernel.img
-QEMUOPTS += -smp $(CPUS)
-QEMUOPTS += $(QEMUEXTRA)
-
-.gdbinit: .gdbinit.tmpl
-	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
+QEMUOPTS += $(QEMUEXTRA) -d guest_errors
 
 gdb:
-	gdb -n -x .gdbinit
+	gdb -q -s obj/kern/kernel -ex 'target remote $(GDBSERV)' -n -x .gdbinit
 
-pre-qemu: .gdbinit
-
-qemu: $(IMAGES) pre-qemu
+qemu: $(IMAGES)
 	$(QEMU) $(QEMUOPTS)
 
-qemu-nox: $(IMAGES) pre-qemu
+qemu-nox: $(IMAGES)
 	@echo "***"
 	@echo "*** Use Ctrl-a x to exit qemu"
 	@echo "***"
 	$(QEMU) -nographic $(QEMUOPTS)
 
-qemu-gdb: $(IMAGES) pre-qemu
+qemu-gdb: $(IMAGES)
 	@echo "***"
 	@echo "*** Now run 'make gdb'." 1>&2
 	@echo "***"
 	$(QEMU) $(QEMUOPTS) -S
 
-qemu-nox-gdb: $(IMAGES) pre-qemu
+qemu-nox-gdb: $(IMAGES)
 	@echo "***"
 	@echo "*** Now run 'make gdb'." 1>&2
 	@echo "***"
@@ -186,7 +180,7 @@ print-gdbport:
 
 # For deleting the build
 clean:
-	rm -rf $(OBJDIR) .gdbinit jos.in qemu.log
+	rm -rf $(OBJDIR) jos.in qemu.log
 
 realclean: clean
 	rm -rf lab$(LAB).tar.gz \
@@ -206,6 +200,9 @@ grade:
 	@$(MAKE) clean || \
 	  (echo "'make clean' failed.  HINT: Do you have another running instance of JOS?" && exit 1)
 	./grade-lab$(LAB) $(GRADEFLAGS)
+
+format: .clang-files .clang-format
+	xargs -r clang-format -i <$<
 
 git-handin: handin-check
 	@if test -n "`git config remote.handin.url`"; then \
@@ -307,16 +304,16 @@ myapi.key:
 prep-%:
 	$(V)$(MAKE) "INIT_CFLAGS=${INIT_CFLAGS} -DTEST=`case $* in *_*) echo $*;; *) echo user_$*;; esac`" $(IMAGES)
 
-run-%-nox-gdb: prep-% pre-qemu
+run-%-nox-gdb: prep-%
 	$(QEMU) -nographic $(QEMUOPTS) -S
 
-run-%-gdb: prep-% pre-qemu
+run-%-gdb: prep-%
 	$(QEMU) $(QEMUOPTS) -S
 
-run-%-nox: prep-% pre-qemu
+run-%-nox: prep-%
 	$(QEMU) -nographic $(QEMUOPTS)
 
-run-%: prep-% pre-qemu
+run-%: prep-%
 	$(QEMU) $(QEMUOPTS)
 
 # This magic automatically generates makefile dependencies
@@ -332,5 +329,6 @@ $(OBJDIR)/.deps: $(foreach dir, $(OBJDIRS), $(wildcard $(OBJDIR)/$(dir)/*.d))
 always:
 	@:
 
+.PHONY: format
 .PHONY: all always \
 	handin git-handin tarball tarball-pref clean realclean distclean grade handin-prep handin-check
