@@ -110,6 +110,34 @@ check_bc(void)
 	memmove(diskaddr(1), &backup, sizeof backup);
 	flush_block(diskaddr(1));
 
+	// Now repeat the same experiment, but pass an unaligned address to
+	// flush_block.
+
+	// back up super block
+	memmove(&backup, diskaddr(1), sizeof backup);
+
+	// smash it
+	strcpy(diskaddr(1), "OOPS!\n");
+
+	// Pass an unaligned address to flush_block.
+	flush_block(diskaddr(1) + 20);
+	assert(va_is_mapped(diskaddr(1)));
+
+	// Skip the !va_is_dirty() check because it makes the bug somewhat
+	// obscure and hence harder to debug.
+	// assert(!va_is_dirty(diskaddr(1)));
+
+	// clear it out
+	sys_page_unmap(0, diskaddr(1));
+	assert(!va_is_mapped(diskaddr(1)));
+
+	// read it back in
+	assert(strcmp(diskaddr(1), "OOPS!\n") == 0);
+
+	// fix it
+	memmove(diskaddr(1), &backup, sizeof backup);
+	flush_block(diskaddr(1));
+
 	cprintf("block cache is good\n");
 }
 
