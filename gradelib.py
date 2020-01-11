@@ -17,6 +17,11 @@ TOTAL = POSSIBLE = 0
 PART_TOTAL = PART_POSSIBLE = 0
 CURRENT_TEST = None
 
+def is_github():
+    """Returns True if the tests are running in Github Actions.
+    """
+    return "GITHUB_WORKFLOW" in os.environ
+
 def test(points, title=None, parent=None):
     """Decorator for declaring test functions.  If title is None, the
     title of the test will be derived from the function name by
@@ -44,8 +49,10 @@ def test(points, title=None, parent=None):
             fail = None
             start = time.time()
             CURRENT_TEST = run_test
-            sys.stdout.write("%s: " % title)
-            sys.stdout.flush()
+            if not is_github():
+                # Let the user know what's running... while it runs.
+                sys.stdout.write("%s: " % title)
+                sys.stdout.flush()
             try:
                 fn()
             except AssertionError as e:
@@ -54,8 +61,12 @@ def test(points, title=None, parent=None):
             # Display and handle test result
             POSSIBLE += points
             if points:
+              if not is_github():
                 print("%s" % \
                     (color("red", "FAIL") if fail else color("green", "OK")), end=' ')
+              elif fail:
+                print("::error file={}:: {}: FAIL".format(
+                      os.path.basename(sys.argv[0]), title.lstrip()))
             if time.time() - start > 0.1:
                 print("(%.1fs)" % (time.time() - start), end=' ')
             print()
