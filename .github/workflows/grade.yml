@@ -1,0 +1,17 @@
+name: Pruebas automáticas
+on:
+  pull_request:
+    paths:
+    - '**.c'
+jobs:
+  test:
+    name: make grade
+    runs-on: ubuntu-18.04
+    timeout-minutes: 4
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get install --no-install-recommends gcc-multilib qemu-system-x86
+    - run: |
+        make grade
