@@ -16,7 +16,7 @@ test_backtrace(int x)
 {
 	cprintf("entering test_backtrace %d\n", x);
 	if (x > 0)
-		test_backtrace(x-1);
+		test_backtrace(x - 1);
 	else
 		mon_backtrace(0, 0, 0);
 	cprintf("leaving test_backtrace %d\n", x);
@@ -61,7 +61,7 @@ const char *panicstr;
  * It prints "panic: mesg", and then enters the kernel monitor.
  */
 void
-_panic(const char *file, int line, const char *fmt,...)
+_panic(const char *file, int line, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -86,7 +86,7 @@ dead:
 
 /* like panic, but don't */
 void
-_warn(const char *file, int line, const char *fmt,...)
+_warn(const char *file, int line, const char *fmt, ...)
 {
 	va_list ap;
 
