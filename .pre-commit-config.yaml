@@ -1,0 +1,54 @@
+fail_fast: false
+repos:
+  # Este primer pre-commit verifica si todo el código enviado al
+  # repositorio cumple con el formato especificado en .clang-format.
+  # Para correr de manera automática al hacer push, instalar:
+  # https://pre-commit.com y hacer: pre-commit install -t pre-push.
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: python
+    hooks:
+      # Por omisión usa la versión de clang-format del sistema, ya
+      # sea la versión 10.0 de Ubuntu 20.04 (focal), o la versión 9
+      # que traen los workers de Github.
+      - id: clang-format
+        args: [-i]
+        # Esta es una lista supuestamente exhaustiva de todos los
+        # archivos que se tocan en el conjunto de entregas de JOS.
+        # Solo esos archivos han sido reformateados con respecto
+        # al fuente original, y solo a esos archivos se les debe
+        # aplicar clang-format (ya sea vía `make format`, o vía
+        # este propio pre-commit).
+        files: |
+          (?x)^($
+             | fs/bc.c
+             | fs/fs.c
+             | fs/serv.c
+             | kern/e1000.c
+             | kern/e1000.h
+             | kern/env.c
+             | kern/init.c
+             | kern/kdebug.c
+             | kern/pmap.c
+             | kern/sched.c
+             | kern/syscall.c
+             | kern/trap.c
+             | lib/file.c
+             | lib/fork.c
+             | lib/ipc.c
+             | lib/libmain.c
+             | lib/spawn.c
+             | net/input.c
+             | net/output.c
+             | user/httpd.c
+             | user/sh.c
+          )$
+
+  # Este otro pre-commit realiza un par de “sanity checks” en el código. Para
+  # mayor pedantería, descomentar end-of-file-fixer, y trailing-whitespace.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    # - id: end-of-file-fixer
+    # - id: trailing-whitespace
+    - id: check-merge-conflict
+    - id: check-added-large-files
