@@ -95,6 +95,9 @@ CFLAGS += -fno-tree-ch
 # Add -fno-stack-protector if the option exists.
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
+# Fix building with GCC 9
+CFLAGS += -Wno-address-of-packed-member
+
 # Common linker flags
 LDFLAGS := -m elf_i386
 

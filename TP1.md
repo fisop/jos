@@ -1,10 +1,15 @@
 TP1: Memoria virtual en JOS
 ===========================
 
-page2pa
--------
+backtrace_func_names
+--------------------
 
+Salida del comando `backtrace`:
+
+```
+K> backtrace
 ...
+```
 
 
 boot_alloc_pos
@@ -15,6 +20,12 @@ boot_alloc_pos
 
 page_alloc
 ----------
+
+...
+
+
+map_region_large
+----------------
 
 ...
 
