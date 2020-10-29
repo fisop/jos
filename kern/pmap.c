@@ -651,18 +651,27 @@ check_kern_pgdir(void)
 {
 	uint32_t i, n;
 	pde_t *pgdir;
+	pte_t *pte;
 
 	pgdir = kern_pgdir;
 
 	// check pages array
 	n = ROUNDUP(npages * sizeof(struct PageInfo), PGSIZE);
-	for (i = 0; i < n; i += PGSIZE)
+	for (i = 0; i < n; i += PGSIZE) {
 		assert(check_va2pa(pgdir, UPAGES + i) == PADDR(pages) + i);
+		// check permissions in UPAGES mapping
+		pte = pgdir_walk(pgdir, (void *) (UPAGES + i), 0);
+		assert(PGOFF(*pte) == (PTE_U | PTE_P));
+	}
 
 	// check envs array (new test for lab 3)
 	n = ROUNDUP(NENV * sizeof(struct Env), PGSIZE);
-	for (i = 0; i < n; i += PGSIZE)
+	for (i = 0; i < n; i += PGSIZE) {
 		assert(check_va2pa(pgdir, UENVS + i) == PADDR(envs) + i);
+		// check permissions in UENVS mapping
+		pte = pgdir_walk(pgdir, (void *) (UENVS + i), 0);
+		assert(PGOFF(*pte) == (PTE_U | PTE_P));
+	}
 
 	// check phys mem
 	for (i = 0; i < npages * PGSIZE; i += PGSIZE)
