@@ -3,7 +3,7 @@
 #include <inc/lib.h>
 
 void
-write(uint16_t *addr, uint16_t value)
+write_page(uint16_t *addr, uint16_t value)
 {
 	int r;
 
@@ -30,7 +30,7 @@ check(uint16_t *addr)
 void
 umain(int argc, char **argv)
 {
-	write(UTEMP, 0x7508);
+	write_page(UTEMP, 0x7508);
 	check(UTEMP);
 	cprintf("The allocated memory is initialized to zero\n");
 }
