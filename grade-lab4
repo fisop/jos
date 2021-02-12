@@ -51,6 +51,11 @@ def test_spin0():
 end_part("1")
 
 @test(1)
+def test_alloczero():
+    r.user_test("alloczero")
+    r.match("The allocated memory is initialized to zero")
+
+@test(1)
 def test_dumbfork():
     r.user_test("dumbfork")
     r.match(E(".00000000. new env $E1"),
