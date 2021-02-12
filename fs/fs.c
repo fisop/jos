@@ -3,6 +3,9 @@
 
 #include "fs.h"
 
+struct Super *super;  // superblock
+uint32_t *bitmap;     // bitmap blocks mapped in memory
+
 // --------------------------------------------------------------
 // Super block
 // --------------------------------------------------------------
