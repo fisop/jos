@@ -7,12 +7,6 @@ env_alloc
 ...
 
 
-env_init_percpu
----------------
-
-...
-
-
 env_pop_tf
 ----------
 
@@ -23,3 +17,16 @@ gdb_hello
 ---------
 
 ...
+
+
+kern_idt
+--------
+
+...
+
+
+user_evilhello
+--------------
+
+...
+
